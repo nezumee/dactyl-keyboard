@@ -473,10 +473,7 @@ def thumb_bl_place(shape):
 
 def thumb_1x_layout(shape):
     return sl.union()(
-        thumb_mr_place(shape),
-        thumb_ml_place(shape),
-        thumb_br_place(shape),
-        thumb_bl_place(shape),
+        thumb_ml_place(shape)
     )
 
 
@@ -542,57 +539,8 @@ def thumb_connectors():
                 thumb_tl_place(thumb_post_br()),
                 thumb_tr_place(thumb_post_tl()),
                 thumb_tr_place(thumb_post_bl()),
-            ]
-        )
-    )
-
-    # bottom two on the right
-    hulls.append(
-        triangle_hulls(
-            [
-                thumb_br_place(web_post_tr()),
-                thumb_br_place(web_post_br()),
-                thumb_mr_place(web_post_tl()),
-                thumb_mr_place(web_post_bl()),
-            ]
-        )
-    )
-
-    # bottom two on the left
-    hulls.append(
-        triangle_hulls(
-            [
-                thumb_br_place(web_post_tr()),
-                thumb_br_place(web_post_br()),
-                thumb_mr_place(web_post_tl()),
-                thumb_mr_place(web_post_bl()),
-            ]
-        )
-    )
-    # centers of the bottom four
-    hulls.append(
-        triangle_hulls(
-            [
-                thumb_bl_place(web_post_tr()),
-                thumb_bl_place(web_post_br()),
-                thumb_ml_place(web_post_tl()),
-                thumb_ml_place(web_post_bl()),
-            ]
-        )
-    )
-
-    # top two to the middle two, starting on the left
-    hulls.append(
-        triangle_hulls(
-            [
-                thumb_br_place(web_post_tl()),
-                thumb_bl_place(web_post_bl()),
-                thumb_br_place(web_post_tr()),
-                thumb_bl_place(web_post_br()),
-                thumb_mr_place(web_post_tl()),
-                thumb_ml_place(web_post_bl()),
-                thumb_mr_place(web_post_tr()),
-                thumb_ml_place(web_post_br()),
+                thumb_tl_place(thumb_post_br()),
+                thumb_tl_place(thumb_post_bl()),
             ]
         )
     )
@@ -605,11 +553,7 @@ def thumb_connectors():
                 thumb_ml_place(web_post_tr()),
                 thumb_tl_place(thumb_post_bl()),
                 thumb_ml_place(web_post_br()),
-                thumb_tl_place(thumb_post_br()),
-                thumb_mr_place(web_post_tr()),
-                thumb_tr_place(thumb_post_bl()),
-                thumb_mr_place(web_post_br()),
-                thumb_tr_place(thumb_post_br()),
+                thumb_ml_place(web_post_bl()),
             ]
         )
     )
@@ -625,7 +569,6 @@ def thumb_connectors():
                 key_place(web_post_bl(), 1, cornerrow),
                 thumb_tr_place(thumb_post_tr()),
                 key_place(web_post_br(), 1, cornerrow),
-                key_place(web_post_tl(), 2, lastrow), # comment for split
                 key_place(web_post_bl(), 2, lastrow),
                 thumb_tr_place(thumb_post_tr()),
                 key_place(web_post_bl(), 2, lastrow),
@@ -908,42 +851,19 @@ def front_wall():
 def thumb_walls():
     # thumb, walls
     shape = wall_brace(
-        thumb_mr_place, 0, -1, web_post_br(), thumb_tr_place, 0, -1, thumb_post_br()
+        thumb_tr_place, 0, -1, thumb_post_bl(), thumb_tr_place, 0, -1, thumb_post_br()
     )
     shape += wall_brace(
-        thumb_mr_place, 0, -1, web_post_br(), thumb_mr_place, 0, -1, web_post_bl()
+        thumb_tl_place, 0, -1, thumb_post_bl(), thumb_tr_place, 0, -1, thumb_post_bl()
     )
     shape += wall_brace(
-        thumb_br_place, 0, -1, web_post_br(), thumb_br_place, 0, -1, web_post_bl()
+        thumb_ml_place, -1, -1, web_post_bl(), thumb_tl_place, 0, -1, thumb_post_bl(),
     )
     shape += wall_brace(
-        thumb_ml_place, -0.3, 1, web_post_tr(), thumb_ml_place, 0, 1, web_post_tl()
+        thumb_ml_place, -0.3, 1, web_post_tr(), thumb_ml_place, -1, 1, web_post_tl()
     )
     shape += wall_brace(
-        thumb_bl_place, 0, 1, web_post_tr(), thumb_bl_place, 0, 1, web_post_tl()
-    )
-    shape += wall_brace(
-        thumb_br_place, -1, 0, web_post_tl(), thumb_br_place, -1, 0, web_post_bl()
-    )
-    shape += wall_brace(
-        thumb_bl_place, -1, 0, web_post_tl(), thumb_bl_place, -1, 0, web_post_bl()
-    )
-    # thumb, corners
-    shape += wall_brace(
-        thumb_br_place, -1, 0, web_post_bl(), thumb_br_place, 0, -1, web_post_bl()
-    )
-    shape += wall_brace(
-        thumb_bl_place, -1, 0, web_post_tl(), thumb_bl_place, 0, 1, web_post_tl()
-    )
-    # thumb, tweeners
-    shape += wall_brace(
-        thumb_mr_place, 0, -1, web_post_bl(), thumb_br_place, 0, -1, web_post_br()
-    )
-    shape += wall_brace(
-        thumb_ml_place, 0, 1, web_post_tl(), thumb_bl_place, 0, 1, web_post_tr()
-    )
-    shape += wall_brace(
-        thumb_bl_place, -1, 0, web_post_bl(), thumb_br_place, -1, 0, web_post_tl()
+        thumb_ml_place, -1, 1, web_post_tl(), thumb_ml_place, -1, -1, web_post_bl()
     )
     shape += wall_brace(
         thumb_tr_place,
@@ -1310,7 +1230,11 @@ def model_right():
     return shape
 
 def model_thumb_right():
-    shape = sl.union ()(thumb(), thumb_connectors(), case_walls_t(),)
+    shape = sl.union ()(
+        thumb(), 
+        thumb_connectors(),
+        case_walls_t(),
+        )
     shape -= sl.translate([0, 0, -20])(sl.cube([350, 350, 40], center=True))
 	
     return shape
