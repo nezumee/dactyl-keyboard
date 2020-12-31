@@ -17,8 +17,8 @@ def rad2deg(rad: float) -> float:
 # ######################
 
 
-nrows = 6  # key rows
-ncols = 6  # key columns
+nrows = 4  # key rows
+ncols = 5  # key columns
 
 alpha = pi / 12.0  # curvature of the columns
 beta = pi / 36.0  # curvature of the rows
@@ -49,8 +49,8 @@ keyboard_z_offset = (
     9  # controls overall height# original=9 with centercol=3# use 16 for centercol=2
 )
 
-extra_width = 2.5  # extra space between the base of keys# original= 2
-extra_height = 1.0  # original= 0.5
+extra_width = 1.7  # extra space between the base of keys# original= 2
+extra_height = 0.2  # original= 0.5
 
 wall_z_offset = -15  # length of the first downward_sloping part of the wall (negative)
 wall_xy_offset = 5  # offset in the x and/or y direction for the first downward_sloping part of the wall (negative)
@@ -78,14 +78,15 @@ lastcol = ncols - 1
 ## Switch Hole ##
 #################
 
-keyswitch_height = 14.4  ## Was 14.1, then 14.25
-keyswitch_width = 14.4
+keyswitch_height = 14.2  ## Was 14.1, then 14.25
+keyswitch_width = 14.2
 
 sa_profile_key_height = 12.7
 
 plate_thickness = 4
-mount_width = keyswitch_width + 3
-mount_height = keyswitch_height + 3
+mount_border = 4
+mount_width = keyswitch_width + mount_border
+mount_height = keyswitch_height + mount_border
 
 plate_file = None
 plate_offset = 0.0
@@ -93,16 +94,32 @@ plate_offset = 0.0
 # plate_offset = plate_thickness - 5.25
 
 def single_plate(cylinder_segments=100):
-    top_wall = sl.cube([keyswitch_width + 3, 1.5, plate_thickness], center=True)
+    top_wall = sl.cube([keyswitch_width + mount_border, mount_border/2, plate_thickness], center=True)
     top_wall = sl.translate(
-        (0, (1.5 / 2) + (keyswitch_height / 2), plate_thickness / 2)
+        (0, (mount_border/2 / 2) + (keyswitch_height / 2), plate_thickness / 2)
     )(top_wall)
 
-    left_wall = sl.cube([1.5, keyswitch_height + 3, plate_thickness], center=True)
+    left_wall = sl.cube([mount_border/2, keyswitch_height + mount_border, plate_thickness], center=True)
     left_wall = sl.translate(
-        ((1.5 / 2) + (keyswitch_width / 2), 0, plate_thickness / 2)
+        ((mount_border/2 / 2) + (keyswitch_width / 2), 0, plate_thickness / 2)
     )(left_wall)
+    
+    holder_height = 4
+    holder_post_height = 8
+    holder_post_width = 2
+    holder_nub_width = 0.6
+    holder_nub_z = 2
+    holder_slot_z = 2
 
+    holder = sl.cube([holder_post_width, holder_post_height, plate_thickness/2 + holder_slot_z + holder_nub_z], center=True)
+    holder = sl.translate(
+        (mount_width/2+holder_post_width/2, 0, -(plate_thickness/2 + holder_slot_z + holder_nub_z)/2+plate_thickness/2), 
+    )(holder)
+    holder2 = sl.cube([holder_post_width+holder_nub_width, holder_height, holder_nub_z], center=True)
+    holder2 = sl.translate(
+        (mount_width/2-(holder_nub_width-holder_post_width)/2, 0, -holder_nub_z/2-holder_slot_z)
+    )(holder2)
+    
     side_nub = sl.cylinder(1, 2.75, segments=cylinder_segments, center=True)
     side_nub = sl.rotate(rad2deg(pi / 2), [1, 0, 0])(side_nub)
     side_nub = sl.translate((keyswitch_width / 2, 0, 1))(side_nub)
@@ -113,7 +130,7 @@ def single_plate(cylinder_segments=100):
 
     side_nub = sl.hull()(side_nub, nub_cube)
 
-    plate_half1 = top_wall + left_wall + side_nub
+    plate_half1 = top_wall + left_wall + holder + holder2 #+ side_nub
     plate_half2 = plate_half1
     plate_half2 = sl.mirror([0, 1, 0])(plate_half2)
     plate_half2 = sl.mirror([1, 0, 0])(plate_half2)
@@ -608,11 +625,27 @@ def thumb_connectors():
                 key_place(web_post_bl(), 1, cornerrow),
                 thumb_tr_place(thumb_post_tr()),
                 key_place(web_post_br(), 1, cornerrow),
-                key_place(web_post_tl(), 2, lastrow),
+                key_place(web_post_tl(), 2, lastrow), # comment for split
                 key_place(web_post_bl(), 2, lastrow),
                 thumb_tr_place(thumb_post_tr()),
                 key_place(web_post_bl(), 2, lastrow),
                 thumb_tr_place(thumb_post_br()),
+                key_place(web_post_br(), 2, lastrow),
+                key_place(web_post_bl(), 3, lastrow)
+            ]
+        )
+    )
+
+    return sl.union()(*hulls)
+
+
+def thumb_connectors2():
+    hulls = []
+
+    hulls.append(
+        triangle_hulls(
+            [
+
                 key_place(web_post_br(), 2, lastrow),
                 key_place(web_post_bl(), 3, lastrow),
                 key_place(web_post_tr(), 2, lastrow),
@@ -650,7 +683,6 @@ def thumb_connectors():
     )
 
     return sl.union()(*hulls)
-
 
 ##########
 ## Case ##
@@ -927,6 +959,23 @@ def thumb_walls():
     return shape
 
 
+def thumb_connection2():
+    # clunky bit on the top left thumb connection  (normal connectors don't work well)
+    shape = bottom_hull(
+        [
+            left_key_place(
+                sl.translate(wall_locate2(-1, 0))(web_post()), cornerrow, -1
+            ),
+            left_key_place(
+                sl.translate(wall_locate3(-1, 0))(web_post()), cornerrow, -1
+            ),
+            thumb_ml_place(sl.translate(wall_locate2(-0.3, 1))(web_post_tr())),
+            thumb_ml_place(sl.translate(wall_locate3(-0.3, 1))(web_post_tr())),
+        ]
+    )
+    
+    return shape
+    
 def thumb_connection():
     # clunky bit on the top left thumb connection  (normal connectors don't work well)
     shape = bottom_hull(
@@ -1003,10 +1052,13 @@ def case_walls():
         + left_wall()
         + right_wall()
         + front_wall()
-        + thumb_walls()
-        + thumb_connection()
     )
 
+def case_walls_t():
+    return (
+        thumb_walls()
+        + thumb_connection()
+    )
 
 rj9_start = list(
     np.array([0, -3, 0])
@@ -1242,22 +1294,36 @@ def wire_posts():
 
 
 def model_right():
-    shape = sl.union()(key_holes(), connectors(), thumb(), thumb_connectors(),)
+    shape = sl.union()(key_holes(), connectors(), thumb_connectors2(),)
+    
+    st = sl.union ()(thumb(), thumb_connectors(), case_walls_t(),)
 
-    s2 = sl.union()(case_walls(), screw_insert_outers(), teensy_holder(), usb_holder(),)
+    s2 = sl.union()(case_walls(),# screw_insert_outers(), teensy_holder(), usb_holder(),
+    )
 
-    s2 = sl.difference()(s2, rj9_space(), usb_holder_hole(), screw_insert_holes())
+    #s2 = sl.difference()(s2, rj9_space(), usb_holder_hole(), screw_insert_holes())
 
-    shape = sl.union()(shape, s2, rj9_holder(), wire_posts(),)
+    shape = sl.union()(shape, s2)
+    #shape = st
 
     shape -= sl.translate([0, 0, -20])(sl.cube([350, 350, 40], center=True))
     return shape
 
+def model_thumb_right():
+    shape = sl.union ()(thumb(), thumb_connectors(), case_walls_t(),)
+    shape -= sl.translate([0, 0, -20])(sl.cube([350, 350, 40], center=True))
+	
+    return shape
+
 
 sl.scad_render_to_file(model_right(), path.join(r"..", "things", r"right_py.scad"))
+sl.scad_render_to_file(model_thumb_right(), path.join(r"..", "things", r"right_thumb_py.scad"))
 
 sl.scad_render_to_file(
     sl.mirror([-1, 0, 0])(model_right()), path.join(r"..", "things", r"left_py.scad")
+)
+sl.scad_render_to_file(
+    sl.mirror([-1, 0, 0])(model_thumb_right()), path.join(r"..", "things", r"left_thumb_py.scad")
 )
 
 
