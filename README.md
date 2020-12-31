@@ -1,4 +1,6 @@
-# The Dactyl-ManuForm Keyboard - Python 3 - Cadquery
+# The Zebra-Dactyl-ManuForm Keyboard - Python 3 - Cadquery
+This fork is for splitting the keyboard into smaller parts that can be tweaked and replaced individually.
+
 This is a fork of [Dactyl-Manuform](https://github.com/tshort/dactyl-keyboard) by Tom Short, which itself is a fork of [Dactyl](https://github.com/adereth/dactyl-keyboard) by Matthew Adereth, a parameterized, split-hand, concave, columnar, ergonomic keyboard.
 
 While the code structure remains comparable to the original, Clojure and OpenSCAD have been replaced by Python and cadquery/OpenCASCADE.  The predecessors were exceptional contributions to the ergo keyboard community by the authors but used a rather esoteric programming language, Clojure, and a relatively inconsistent geometry engine, OpenSCAD.  My hope is that by converting the code the community will have an easier time modifying and evolving this design.  
