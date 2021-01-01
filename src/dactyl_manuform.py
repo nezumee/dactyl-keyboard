@@ -543,7 +543,7 @@ def thumbcaps():
 def thumb():
     shape = thumb_1x_layout(single_plate())
     shape += thumb_15x_layout(single_plate())
-    shape += thumb_15x_layout(double_plate())
+    # shape += thumb_15x_layout(double_plate())
     return shape
 
 
@@ -578,12 +578,12 @@ def thumb_connectors():
     hulls.append(
         triangle_hulls(
             [
-                thumb_tl_place(thumb_post_tr()),
-                thumb_tl_place(thumb_post_br()),
-                thumb_tr_place(thumb_post_tl()),
-                thumb_tr_place(thumb_post_bl()),
-                thumb_tl_place(thumb_post_br()),
-                thumb_tl_place(thumb_post_bl()),
+                thumb_tl_place(web_post_tr()),
+                thumb_tl_place(web_post_br()),
+                thumb_tr_place(web_post_tl()),
+                thumb_tr_place(web_post_bl()),
+                thumb_tl_place(web_post_br()),
+                thumb_tl_place(web_post_bl()),
             ]
         )
     )
@@ -592,9 +592,9 @@ def thumb_connectors():
     hulls.append(
         triangle_hulls(
             [
-                thumb_tl_place(thumb_post_tl()),
+                thumb_tl_place(web_post_tl()),
                 thumb_ml_place(web_post_tr()),
-                thumb_tl_place(thumb_post_bl()),
+                thumb_tl_place(web_post_bl()),
                 thumb_ml_place(web_post_br()),
                 thumb_ml_place(web_post_bl()),
             ]
@@ -604,18 +604,18 @@ def thumb_connectors():
     hulls.append(
         triangle_hulls(
             [
-                thumb_tl_place(thumb_post_tl()),
+                thumb_tl_place(web_post_tl()),
                 key_place(web_post_bl(), 0, cornerrow),
-                thumb_tl_place(thumb_post_tr()),
+                thumb_tl_place(web_post_tr()),
                 key_place(web_post_br(), 0, cornerrow),
-                thumb_tr_place(thumb_post_tl()),
+                thumb_tr_place(web_post_tl()),
                 key_place(web_post_bl(), 1, cornerrow),
-                thumb_tr_place(thumb_post_tr()),
+                thumb_tr_place(web_post_tr()),
                 key_place(web_post_br(), 1, cornerrow),
                 key_place(web_post_bl(), 2, lastrow),
-                thumb_tr_place(thumb_post_tr()),
+                thumb_tr_place(web_post_tr()),
                 key_place(web_post_bl(), 2, lastrow),
-                thumb_tr_place(thumb_post_br()),
+                thumb_tr_place(web_post_br()),
                 key_place(web_post_br(), 2, lastrow),
                 key_place(web_post_bl(), 3, lastrow)
             ]
@@ -1007,13 +1007,13 @@ def z_front_wall(column):
 def thumb_walls():
     # thumb, walls
     shape = wall_brace(
-        thumb_tr_place, 0, -1, thumb_post_bl(), thumb_tr_place, 0, -1, thumb_post_br()
+        thumb_tr_place, 0, -1, web_post_bl(), thumb_tr_place, 0, -1, web_post_br()
     )
     shape += wall_brace(
-        thumb_tl_place, 0, -1, thumb_post_bl(), thumb_tr_place, 0, -1, thumb_post_bl()
+        thumb_tl_place, 0, -1, web_post_bl(), thumb_tr_place, 0, -1, web_post_bl()
     )
     shape += wall_brace(
-        thumb_ml_place, -1, -1, web_post_bl(), thumb_tl_place, 0, -1, thumb_post_bl(),
+        thumb_ml_place, -1, -1, web_post_bl(), thumb_tl_place, 0, -1, web_post_bl(),
     )
     shape += wall_brace(
         thumb_ml_place, -0.3, 1, web_post_tr(), thumb_ml_place, -1, 1, web_post_tl()
@@ -1025,7 +1025,7 @@ def thumb_walls():
         thumb_tr_place,
         0,
         -1,
-        thumb_post_br(),
+        web_post_br(),
         (lambda sh: key_place(sh, 3, lastrow)),
         0,
         -1,
@@ -1077,7 +1077,7 @@ def thumb_connection():
             ),
             thumb_ml_place(sl.translate(wall_locate2(-0.3, 1))(web_post_tr())),
             thumb_ml_place(sl.translate(wall_locate3(-0.3, 1))(web_post_tr())),
-            thumb_tl_place(thumb_post_tl()),
+            thumb_tl_place(web_post_tl()),
         ]
     )
 
@@ -1093,7 +1093,7 @@ def thumb_connection():
             left_key_place(
                 sl.translate(wall_locate3(-1, 0))(web_post()), cornerrow, -1
             ),
-            thumb_tl_place(thumb_post_tl()),
+            thumb_tl_place(web_post_tl()),
         ]
     )
 
@@ -1105,7 +1105,7 @@ def thumb_connection():
             ),
             key_place(web_post_bl(), 0, cornerrow),
             key_place(sl.translate(wall_locate1(-1, 0))(web_post_bl()), 0, cornerrow),
-            thumb_tl_place(thumb_post_tl()),
+            thumb_tl_place(web_post_tl()),
         ]
     )
 
@@ -1115,7 +1115,7 @@ def thumb_connection():
             thumb_ml_place(sl.translate(wall_locate1(-0.3, 1))(web_post_tr())),
             thumb_ml_place(sl.translate(wall_locate2(-0.3, 1))(web_post_tr())),
             thumb_ml_place(sl.translate(wall_locate3(-0.3, 1))(web_post_tr())),
-            thumb_tl_place(thumb_post_tl()),
+            thumb_tl_place(web_post_tl()),
         ]
     )
 
