@@ -50,7 +50,7 @@ keyboard_z_offset = (
     9  # controls overall height# original=9 with centercol=3# use 16 for centercol=2
 )
 
-extra_width = 1.7  # extra space between the base of keys# original= 2
+extra_width = .1  # extra space between the base of keys# original= 2
 extra_height = 0.2  # original= 0.5
 
 wall_z_offset = -5  # length of the first downward_sloping part of the wall (negative)
@@ -766,8 +766,33 @@ def wall_locate3(dx, dy):
         wall_z_offset,
     ]
 
+def connector_shape(mirror = False, offset = False):
+    c_width = 16
+    c_thickness = 1.6
+    c_height = 8
+    c_braceWidth = 3
+    c_blendWidth = 4
+    c_holeDiameter = 2.4
+    c_holeToBorder = 3
 
-def wall_brace(place1, dx1, dy1, post1, place2, dx2, dy2, post2, skip_top = False):
+    s = sl.translate([0, -c_blendWidth/2, 0])(sl.cube([c_thickness,c_width+c_blendWidth,c_height], center = True))
+    s += sl.translate([-c_thickness/2, -c_blendWidth/2, -(c_height-c_thickness)/2])(sl.cube([c_braceWidth, c_width+c_blendWidth, c_thickness], center = True))
+    s += sl.translate([-c_thickness/2, -c_blendWidth/2, (c_height-c_thickness)/2])(sl.cube([c_braceWidth, c_width+c_blendWidth, c_thickness], center = True))
+
+    s -= sl.translate([0, c_width/2-c_holeToBorder])(
+        sl.rotate(rad2deg(pi/2), [0, 1, 0])(sl.cylinder(c_holeDiameter/2, c_thickness*4, segments = 20, center = True))
+    )
+
+    if mirror:
+        s = sl.mirror([-1, 0, 0])(s)
+    s = sl.translate([c_thickness/2, c_width/2, c_height/2])(s)
+
+    if offset:
+        s = sl.translate([0, 0, c_height-c_holeDiameter])(s)
+
+    return s
+
+def wall_brace(place1, dx1, dy1, post1, place2, dx2, dy2, post2, skip_top = False, pos1 = None, pos2 = None, isEven = False):
     hulls = []
 
     if not(skip_top):
@@ -790,10 +815,33 @@ def wall_brace(place1, dx1, dy1, post1, place2, dx2, dy2, post2, skip_top = Fals
     hulls.append(place2(sl.translate(wall_locate3(dx2, dy2))(post2)))
     shape2 = bottom_hull(hulls)
 
-    return shape1 + shape2
+    result = shape1 + shape2
+
+    if pos1:
+        connector_pos = pos1(add_translate([mount_width/2, dy1*mount_height/2, 0], wall_locate3(dx1, dy1)))
+        connector_pos[2] = 0
+        c_shape = connector_shape(True, isEven)
+        if dy1<0:
+            c_shape = sl.mirror([0, -1, 0])(c_shape)
+        result += sl.translate(connector_pos)(c_shape)
+
+    if pos2:
+        connector_pos = pos2(add_translate([mount_width/2, dy1*mount_height/2, 0], wall_locate3(dx2, dy2)))
+        connector_pos[2] = 0
+        c_shape = connector_shape(False, not(isEven))
+        if dy1<0:
+            c_shape = sl.mirror([0, -1, 0])(c_shape)
+        result += sl.translate(connector_pos)(c_shape)
+
+    return result
 
 
-def key_wall_brace(x1, y1, dx1, dy1, post1, x2, y2, dx2, dy2, post2, skip_top = False):
+def key_wall_brace(x1, y1, dx1, dy1, post1, x2, y2, dx2, dy2, post2, skip_top = False, add_connector = False):
+    pos1 = None
+    pos2 = None
+    if add_connector:
+        pos1 = (lambda pos: key_position(pos, x1, y1))
+        pos2 = (lambda pos: key_position(pos, x2, y2))
     return wall_brace(
         (lambda shape: key_place(shape, x1, y1)),
         dx1,
@@ -804,6 +852,9 @@ def key_wall_brace(x1, y1, dx1, dy1, post1, x2, y2, dx2, dy2, post2, skip_top = 
         dy2,
         post2,
         skip_top,
+        pos1,
+        pos2,
+        x1%2 == 0
     )
 
 
@@ -823,8 +874,8 @@ def back_wall():
 
 def z_back_wall(column):
     shape = key_wall_brace(column, 0, 0, 1, web_post_tl(), column, 0, 0, 1, web_post_tr())
-    if column > 0:
-        shape += key_wall_brace(column-1, 0, 0, 1, web_post_tr(), column, 0, 0, 1, web_post_tl(), True)
+    # if column > 0:
+    shape += key_wall_brace(column-1, 0, 0, 1, web_post_tr(), column, 0, 0, 1, web_post_tl(), True, True)
     return shape
 
 def right_wall():
@@ -948,27 +999,8 @@ def z_front_wall(column):
     shape = key_wall_brace(
             column, cornerrow, 0, -1, web_post_bl(), column, cornerrow, 0, -1, web_post_br()
         )
-    if column > 0:
-        shape += key_wall_brace(column-1, cornerrow, 0, -1, web_post_br(), column, cornerrow, 0, -1, web_post_bl(), True)
-    # shape = key_wall_brace(
-    #     lastcol, 0, 0, 1, web_post_tr(), lastcol, 0, 1, 0, web_post_tr()
-    # )
-    # shape += key_wall_brace(
-    #     3, lastrow, 0, -1, web_post_bl(), 3, lastrow, 0.5, -1, web_post_br()
-    # )
-    # shape += key_wall_brace(
-    #     3, lastrow, 0.5, -1, web_post_br(), 4, cornerrow, 1, -1, web_post_bl()
-    # )
-    # for i in range(ncols - 4):
-    #     x = i + 4
-    #     shape += key_wall_brace(
-    #         x, cornerrow, 0, -1, web_post_bl(), x, cornerrow, 0, -1, web_post_br()
-    #     )
-    # for i in range(ncols - 5):
-    #     x = i + 5
-    #     shape += key_wall_brace(
-    #         x, cornerrow, 0, -1, web_post_bl(), x - 1, cornerrow, 0, -1, web_post_br()
-    #     )
+    # if column > 0:
+    shape += key_wall_brace(column-1, cornerrow, 0, -1, web_post_br(), column, cornerrow, 0, -1, web_post_bl(), True, True)
 
     return shape
 
@@ -1385,6 +1417,14 @@ def model_thumb_right():
 for column in range(ncols):
     p = path.join(r"..", "things", r"right"+str(column)+r"_py.scad")
     sl.scad_render_to_file(z_model_right(column), p)
+
+combined_z = []
+for column in range(ncols):
+    combined_z += z_model_right(column)
+combined_z += model_thumb_right()
+sl.scad_render_to_file(sl.union()(combined_z), path.join(r"..", "things", r"right_all_py.scad"))
+
+
 
 sl.scad_render_to_file(model_right(), path.join(r"..", "things", r"right_py.scad"))
 sl.scad_render_to_file(model_thumb_right(), path.join(r"..", "things", r"right_thumb_py.scad"))
