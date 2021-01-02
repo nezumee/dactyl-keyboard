@@ -9,3 +9,4 @@
 *.scad
 /target
 .idea/
+/things
