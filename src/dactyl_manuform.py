@@ -45,7 +45,7 @@ def column_offset(column: int) -> list:
         return [0, 0, 0]
 
 
-thumb_offsets = [6, -3, 7]
+thumb_offsets = [6, -12, 7]
 keyboard_z_offset = (
     9  # controls overall height# original=9 with centercol=3# use 16 for centercol=2
 )
@@ -474,7 +474,7 @@ def thumb_tl_place(shape):
     shape = sl.rotate(-23, [0, 1, 0])(shape)
     shape = sl.rotate(10, [0, 0, 1])(shape)
     shape = sl.translate(thumborigin())(shape)
-    shape = sl.translate([-32, -15, -2])(shape)
+    shape = sl.translate([-33, -15, -2])(shape)
     return shape
 
 
@@ -541,8 +541,9 @@ def thumbcaps():
 
 
 def thumb():
-    shape = thumb_1x_layout(single_plate())
-    shape += thumb_15x_layout(single_plate())
+    plate = sl.rotate(rad2deg(pi/2), [0, 0, 1])(single_plate())
+    shape = thumb_1x_layout(plate)
+    shape += thumb_15x_layout(plate)
     # shape += thumb_15x_layout(double_plate())
     return shape
 
@@ -571,19 +572,24 @@ def thumb_post_br():
     )(web_post())
 
 
-def thumb_connectors():
+def thumb_connectors(connect_to_main = True):
     hulls = []
 
     # Top two
     hulls.append(
         triangle_hulls(
             [
+                thumb_tr_place(web_post_tr()),
                 thumb_tl_place(web_post_tr()),
+                thumb_tr_place(web_post_tl()),
                 thumb_tl_place(web_post_br()),
                 thumb_tr_place(web_post_tl()),
                 thumb_tr_place(web_post_bl()),
                 thumb_tl_place(web_post_br()),
                 thumb_tl_place(web_post_bl()),
+                thumb_ml_place(web_post_br()),
+                thumb_tr_place(web_post_bl()),
+                thumb_ml_place(web_post_bl()),
             ]
         )
     )
@@ -601,26 +607,27 @@ def thumb_connectors():
         )
     )
 
-    hulls.append(
-        triangle_hulls(
-            [
-                thumb_tl_place(web_post_tl()),
-                key_place(web_post_bl(), 0, cornerrow),
-                thumb_tl_place(web_post_tr()),
-                key_place(web_post_br(), 0, cornerrow),
-                thumb_tr_place(web_post_tl()),
-                key_place(web_post_bl(), 1, cornerrow),
-                thumb_tr_place(web_post_tr()),
-                key_place(web_post_br(), 1, cornerrow),
-                key_place(web_post_bl(), 2, lastrow),
-                thumb_tr_place(web_post_tr()),
-                key_place(web_post_bl(), 2, lastrow),
-                thumb_tr_place(web_post_br()),
-                key_place(web_post_br(), 2, lastrow),
-                key_place(web_post_bl(), 3, lastrow)
-            ]
+    if connect_to_main:
+        hulls.append(
+            triangle_hulls(
+                [
+                    thumb_tl_place(web_post_tl()),
+                    key_place(web_post_bl(), 0, cornerrow),
+                    thumb_tl_place(web_post_tr()),
+                    key_place(web_post_br(), 0, cornerrow),
+                    thumb_tr_place(web_post_tl()),
+                    key_place(web_post_bl(), 1, cornerrow),
+                    thumb_tr_place(web_post_tr()),
+                    key_place(web_post_br(), 1, cornerrow),
+                    key_place(web_post_bl(), 2, lastrow),
+                    thumb_tr_place(web_post_tr()),
+                    key_place(web_post_bl(), 2, lastrow),
+                    thumb_tr_place(web_post_br()),
+                    key_place(web_post_br(), 2, lastrow),
+                    key_place(web_post_bl(), 3, lastrow)
+                ]
+            )
         )
-    )
 
     return sl.union()(*hulls)
 
@@ -766,12 +773,10 @@ def wall_locate3(dx, dy):
         wall_z_offset,
     ]
 
-def connector_shape(mirror = False, offset = False):
-    c_width = 16
+def connector_shape(mirror = False, offset = False, c_width = 16, c_blendWidth = 4, horizontal = False):
     c_thickness = 1.6
     c_height = 8
-    c_braceWidth = 3
-    c_blendWidth = 4
+    c_braceWidth = 3    
     c_holeDiameter = 2.4
     c_holeToBorder = 3
 
@@ -783,8 +788,15 @@ def connector_shape(mirror = False, offset = False):
         sl.rotate(rad2deg(pi/2), [0, 1, 0])(sl.cylinder(c_holeDiameter/2, c_thickness*4, segments = 20, center = True))
     )
 
+    if horizontal:
+        s = sl.rotate(rad2deg(pi/2), [0, 1, 0])(s)
+
     if mirror:
-        s = sl.mirror([-1, 0, 0])(s)
+        if horizontal:
+            s = sl.rotate(rad2deg(pi), [1, 0, 0])(s)
+            s = sl.translate([0, 0, -c_thickness])(s)
+        else:
+            s = sl.mirror([-1, 0, 0])(s)
     s = sl.translate([c_thickness/2, c_width/2, c_height/2])(s)
 
     if offset:
@@ -826,15 +838,28 @@ def wall_brace(place1, dx1, dy1, post1, place2, dx2, dy2, post2, skip_top = Fals
         result += sl.translate(connector_pos)(c_shape)
 
     if pos2:
-        connector_pos = pos2(add_translate([mount_width/2, dy1*mount_height/2, 0], wall_locate3(dx2, dy2)))
+        connector_pos = pos2(add_translate([mount_width/2, dy2*mount_height/2, 0], wall_locate3(dx2, dy2)))
         connector_pos[2] = 0
         c_shape = connector_shape(False, not(isEven))
-        if dy1<0:
+        if dy2<0:
             c_shape = sl.mirror([0, -1, 0])(c_shape)
         result += sl.translate(connector_pos)(c_shape)
 
     return result
 
+def z_thumb_connector(dx1, dy1, pos, reverse = False):
+    connector_pos1 = pos(add_translate([-mount_width/2, dy1*mount_height/2, 0], wall_locate3(dx1, dy1)))
+    connector_pos2 = pos(add_translate([mount_width/2, dy1*mount_height/2, 0], wall_locate3(dx1, dy1)))
+    connector_pos = [(connector_pos1[0]+connector_pos2[0])/2, (connector_pos1[1]+connector_pos2[1])/2, 0]
+    c_shape = connector_shape(
+        c_width=6,
+        c_blendWidth=12 if reverse else 4,
+        horizontal=True,
+        mirror=reverse)
+    if dy1<0:
+        c_shape = sl.mirror([0, -1, 0])(c_shape)
+
+    return sl.translate(connector_pos)(c_shape)
 
 def key_wall_brace(x1, y1, dx1, dy1, post1, x2, y2, dx2, dy2, post2, skip_top = False, add_connector = False):
     pos1 = None
@@ -876,6 +901,7 @@ def z_back_wall(column):
     shape = key_wall_brace(column, 0, 0, 1, web_post_tl(), column, 0, 0, 1, web_post_tr())
     # if column > 0:
     shape += key_wall_brace(column-1, 0, 0, 1, web_post_tr(), column, 0, 0, 1, web_post_tl(), True, True)
+
     return shape
 
 def right_wall():
@@ -1001,6 +1027,30 @@ def z_front_wall(column):
         )
     # if column > 0:
     shape += key_wall_brace(column-1, cornerrow, 0, -1, web_post_br(), column, cornerrow, 0, -1, web_post_bl(), True, True)
+
+    if column == 2:
+        shape += sl.translate([-2.2, 0, 0])(z_thumb_connector(0, -1, (lambda pos: key_position(pos, column, cornerrow)))) # TODO fix the connector overlap instead of artificial offset
+
+    return shape
+
+def z_thumb_walls():
+    shape = wall_brace(thumb_tr_place, 1, -1, web_post_br(), thumb_tr_place, 1.4, 0, web_post_tr())
+    shape += wall_brace(thumb_ml_place, -1, 0, web_post_bl(), thumb_ml_place, -1, 1, web_post_tl())
+    shape += wall_brace(
+        thumb_ml_place, -1, 0, web_post_bl(),
+        (lambda shape: sl.translate ([0,0, -30])(thumb_tr_place(shape))), 1, -1, web_post_br(), True)
+
+    # use vertical connector
+    shape += wall_brace(
+        thumb_ml_place, -1, 1, web_post_tl(),
+        (lambda shape: sl.translate([0, 0, -30])(key_place(shape, 0, cornerrow))), 0, -1, web_post_bl(),
+        True,
+        None,
+        (lambda pos: key_position(pos, -1, cornerrow)),
+        True
+        )
+
+    shape +=  sl.translate([2.6, 0, 0])(z_thumb_connector(0, -1, (lambda pos: key_position(pos, 2, cornerrow)), True))
 
     return shape
 
@@ -1404,6 +1454,17 @@ def z_model_right(column):
 
     return zs
 
+def z_model_thumb_right():
+    shape = sl.union ()(
+        thumb(), 
+        thumb_connectors(False),
+        z_thumb_walls(),
+        # case_walls_t(),
+        )
+    shape -= sl.translate([0, 0, -20])(sl.cube([350, 350, 40], center=True))
+	
+    return shape
+
 def model_thumb_right():
     shape = sl.union ()(
         thumb(), 
@@ -1415,16 +1476,15 @@ def model_thumb_right():
     return shape
 
 for column in range(ncols):
-    p = path.join(r"..", "things", r"right"+str(column)+r"_py.scad")
+    p = path.join(r"..", "things", r"right_z"+str(column)+r"_py.scad")
     sl.scad_render_to_file(z_model_right(column), p)
+sl.scad_render_to_file(z_model_thumb_right(), path.join(r"..", "things", r"right_zthumb_py.scad"))
 
 combined_z = []
 for column in range(ncols):
     combined_z += z_model_right(column)
-combined_z += model_thumb_right()
+combined_z += z_model_thumb_right()
 sl.scad_render_to_file(sl.union()(combined_z), path.join(r"..", "things", r"right_all_py.scad"))
-
-
 
 sl.scad_render_to_file(model_right(), path.join(r"..", "things", r"right_py.scad"))
 sl.scad_render_to_file(model_thumb_right(), path.join(r"..", "things", r"right_thumb_py.scad"))
