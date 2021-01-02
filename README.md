@@ -152,6 +152,6 @@ This site also shows connections for the Arduino Pro Micro controllers.
 
 ## License
 
-Copyright © 2015-2020 Matthew Adereth, Tom Short, and Joshua Shreve
+Copyright © 2015-2020 Matthew Adereth, Tom Short, Joshua Shreve, and Nezumee
 
 The source code for generating the models (everything excluding the [things/](things/) and [resources/](resources/) directories is distributed under the [GNU AFFERO GENERAL PUBLIC LICENSE Version 3](LICENSE).  The generated models and PCB designs are distributed under the [Creative Commons Attribution-NonCommercial-ShareAlike License Version 3.0](LICENSE-models).
