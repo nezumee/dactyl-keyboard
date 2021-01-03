@@ -45,7 +45,7 @@ def column_offset(column: int) -> list:
         return [0, 0, 0]
 
 
-thumb_offsets = [6, -12, 7]
+thumb_offsets = [6, -8, 7]
 keyboard_z_offset = (
     9  # controls overall height# original=9 with centercol=3# use 16 for centercol=2
 )
@@ -610,11 +610,11 @@ def thumb_connectors(connect_to_main = True):
                 thumb_tl_place(web_post_br()),
                 thumb_tr_place(web_post_tl()),
                 thumb_tr_place(web_post_bl()),
-                thumb_tl_place(web_post_br()),
-                thumb_tl_place(web_post_bl()),
-                thumb_ml_place(web_post_br()),
-                thumb_tr_place(web_post_bl()),
-                thumb_ml_place(web_post_bl()),
+                # thumb_tl_place(web_post_br()), # see how rigid the structure is without this
+                # thumb_tl_place(web_post_bl()),
+                # thumb_ml_place(web_post_br()),
+                # thumb_tr_place(web_post_bl()),
+                # thumb_ml_place(web_post_bl()),
             ]
         )
     )
@@ -1090,7 +1090,7 @@ def z_front_wall(column):
     return shape
 
 def z_thumb_walls():
-    shape = wall_brace(thumb_tr_place, 1, -1, web_post_br(), thumb_tr_place, 1.4, 0, web_post_tr())
+    shape = wall_brace(thumb_tr_place, 1, -1, web_post_br(), thumb_tr_place, 1.4, -2, web_post_tr())
     shape += wall_brace(thumb_ml_place, -1, 0, web_post_bl(), thumb_ml_place, -1, 1, web_post_tl())
     shape += wall_brace(
         thumb_ml_place, -1, 0, web_post_bl(),
@@ -1099,14 +1099,14 @@ def z_thumb_walls():
     # use vertical connector
     shape += wall_brace(
         thumb_ml_place, -1, 1, web_post_tl(),
-        (lambda shape: sl.translate([0, 0, -30])(key_place(shape, 0, cornerrow))), 0, -1, web_post_bl(),
+        (lambda shape: sl.translate([-1.5, 0, -33])(key_place(shape, 0, cornerrow))), 0, -1, web_post_bl(),
         True,
         None,
         (lambda pos: key_position(pos, -1, cornerrow)),
         True
         )
 
-    shape +=  sl.translate([2.6, 0, 0])(z_thumb_connector(0, -1, (lambda pos: key_position(pos, 2, cornerrow)), True))
+    shape +=  sl.translate([4.6, 0, 0])(z_thumb_connector(0, -1, (lambda pos: key_position(pos, 2, cornerrow)), True))
 
     return shape
 
