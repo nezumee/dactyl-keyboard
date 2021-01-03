@@ -148,6 +148,20 @@ def single_plate(cylinder_segments=100):
 
     return plate
 
+def encoder_plate(cylinder_segments=100):
+    enc_stem_diam = 8
+    enc_bar_length = 13
+    enc_bar_width = 2
+
+    wall = sl.cube([mount_width, mount_height, plate_thickness], center=True)
+    wall -= sl.cylinder(enc_stem_diam/2, plate_thickness*2, center = True)
+    wall -= sl.cube([enc_bar_length, enc_bar_width, plate_thickness*2], center=True)
+    wall -= sl.cube([enc_bar_width, enc_bar_length, plate_thickness*2], center=True)
+    
+    wall = sl.translate([0, 0, plate_thickness/2])(wall)
+
+    return wall
+ 
 
 ################
 ## SA Keycaps ##
@@ -477,6 +491,16 @@ def thumb_tl_place(shape):
     shape = sl.translate([-33, -15, -2])(shape)
     return shape
 
+def thumb_enc_place(shape):
+    shape = sl.rotate(90, [0, 1, 0])(shape)
+    shape = sl.translate([-mount_width/2 - 6, mount_height/2 + 22, 16])(shape)
+    shape = sl.rotate(10, [1, 0, 0])(shape)
+    shape = sl.rotate(-23, [0, 1, 0])(shape)
+    shape = sl.rotate(10, [0, 0, 1])(shape)
+    shape = sl.translate(thumborigin())(shape)
+    shape = sl.translate([-33, -15, -2])(shape)
+    return shape
+
 
 def thumb_mr_place(shape):
     shape = sl.rotate(-6, [1, 0, 0])(shape)
@@ -516,7 +540,8 @@ def thumb_bl_place(shape):
 
 def thumb_1x_layout(shape):
     return sl.union()(
-        thumb_ml_place(shape)
+        thumb_ml_place(shape),
+        thumb_enc_place(encoder_plate()),
     )
 
 
@@ -603,6 +628,29 @@ def thumb_connectors(connect_to_main = True):
                 thumb_tl_place(web_post_bl()),
                 thumb_ml_place(web_post_br()),
                 thumb_ml_place(web_post_bl()),
+            ]
+        )
+    )
+
+    # encoder
+    hulls.append(
+        triangle_hulls(
+            [
+                thumb_enc_place(web_post_tr()),
+                thumb_tl_place(web_post_tl()),
+                thumb_enc_place(web_post_br()),
+                thumb_ml_place(web_post_tr()),
+                thumb_enc_place(web_post_bl()),
+                thumb_ml_place(web_post_tl()),
+            ]
+        )
+    )
+    hulls.append(
+        triangle_hulls(
+            [
+                thumb_enc_place(web_post_br()),
+                thumb_tl_place(web_post_tr()),
+                thumb_tl_place(web_post_tl()),
             ]
         )
     )
