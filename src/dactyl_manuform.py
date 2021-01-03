@@ -780,6 +780,8 @@ def connector_shape(mirror = False, offset = False, c_width = 16, c_blendWidth =
     c_holeDiameter = 2.4
     c_holeToBorder = 3
 
+    slot_length = c_width-c_holeToBorder*2+c_holeDiameter
+
     s = sl.translate([0, -c_blendWidth/2, 0])(sl.cube([c_thickness,c_width+c_blendWidth,c_height], center = True))
     s += sl.translate([-c_thickness/2, -c_blendWidth/2, -(c_height-c_thickness)/2])(sl.cube([c_braceWidth, c_width+c_blendWidth, c_thickness], center = True))
     s += sl.translate([-c_thickness/2, -c_blendWidth/2, (c_height-c_thickness)/2])(sl.cube([c_braceWidth, c_width+c_blendWidth, c_thickness], center = True))
@@ -787,6 +789,12 @@ def connector_shape(mirror = False, offset = False, c_width = 16, c_blendWidth =
     s -= sl.translate([0, c_width/2-c_holeToBorder])(
         sl.rotate(rad2deg(pi/2), [0, 1, 0])(sl.cylinder(c_holeDiameter/2, c_thickness*4, segments = 20, center = True))
     )
+    if not horizontal:
+        s -= sl.translate([0, c_width/2-c_holeToBorder])(
+            sl.translate([0,-(slot_length)/2, 0])(sl.cube(
+                [c_thickness*4, slot_length, c_holeDiameter], 
+                center = True))
+        )
 
     if horizontal:
         s = sl.rotate(rad2deg(pi/2), [0, 1, 0])(s)
