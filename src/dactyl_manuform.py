@@ -23,7 +23,7 @@ extrarow = False
 
 alpha = pi / 12.0  # curvature of the columns
 beta = pi / 36.0  # curvature of the rows
-centerrow = nrows - 3  # controls front_back tilt
+#centerrow = nrows - 3  # controls front_back tilt
 centercol = 3  # controls left_right tilt / tenting (higher number is more tenting)
 tenting_angle = pi / 12.0  # or, change this for more precise tenting control
 
@@ -40,10 +40,18 @@ def column_offset(column: int) -> list:
     if column == 2:
         return [0, 2.82, -4.5]
     elif column >= 4:
-        return [0, -12, 5.64]  # original [0 -5.8 5.64]
+        return [2, -13, 7.64]  # original [0 -5.8 5.64]
     else:
         return [0, 0, 0]
 
+def center_row(column: int):
+    return nrows - 3
+
+def extra_x_rotate(column: int):
+    if column >= 4:
+        return alpha/2
+    else:
+        return 0
 
 thumb_offsets = [6, -8, 7]
 keyboard_z_offset = (
@@ -256,7 +264,7 @@ def apply_key_geometry(
     if column_style == "orthographic":
         column_z_delta = column_radius * (1 - np.cos(column_angle))
         shape = translate_fn(shape, [0, 0, -row_radius])
-        shape = rotate_x_fn(shape, alpha * (centerrow - row))
+        shape = rotate_x_fn(shape, alpha * (center_row(column) - row))
         shape = translate_fn(shape, [0, 0, row_radius])
         shape = rotate_y_fn(shape, column_angle)
         shape = translate_fn(
@@ -268,15 +276,16 @@ def apply_key_geometry(
         shape = rotate_y_fn(shape, fixed_angles[column])
         shape = translate_fn(shape, [fixed_x[column], 0, fixed_z[column]])
         shape = translate_fn(shape, [0, 0, -(row_radius + fixed_z[column])])
-        shape = rotate_x_fn(shape, alpha * (centerrow - row))
+        shape = rotate_x_fn(shape, alpha * (center_row(column) - row))
         shape = translate_fn(shape, [0, 0, row_radius + fixed_z[column]])
         shape = rotate_y_fn(shape, fixed_tenting)
         shape = translate_fn(shape, [0, column_offset(column)[1], 0])
 
     else:
         shape = translate_fn(shape, [0, 0, -row_radius])
-        shape = rotate_x_fn(shape, alpha * (centerrow - row))
+        shape = rotate_x_fn(shape, alpha * (center_row(column) - row))
         shape = translate_fn(shape, [0, 0, row_radius])
+        shape = rotate_x_fn(shape, extra_x_rotate(column))
         shape = translate_fn(shape, [0, 0, -column_radius])
         shape = rotate_y_fn(shape, column_angle)
         shape = translate_fn(shape, [0, 0, column_radius])
@@ -1320,58 +1329,58 @@ def usb_holder_hole():
     return shape
 
 
-teensy_width = 20
-teensy_height = 12
-teensy_length = 33
-teensy2_length = 53
-teensy_pcb_thickness = 2
-teensy_holder_width = 7 + teensy_pcb_thickness
-teensy_holder_height = 6 + teensy_width
-teensy_offset_height = 5
-teensy_holder_top_length = 18
-teensy_top_xy = key_position(wall_locate3(-1, 0), 0, centerrow - 1)
-teensy_bot_xy = key_position(wall_locate3(-1, 0), 0, centerrow + 1)
-teensy_holder_length = teensy_top_xy[1] - teensy_bot_xy[1]
-teensy_holder_offset = -teensy_holder_length / 2
-teensy_holder_top_offset = (teensy_holder_top_length / 2) - teensy_holder_length
+# teensy_width = 20
+# teensy_height = 12
+# teensy_length = 33
+# teensy2_length = 53
+# teensy_pcb_thickness = 2
+# teensy_holder_width = 7 + teensy_pcb_thickness
+# teensy_holder_height = 6 + teensy_width
+# teensy_offset_height = 5
+# teensy_holder_top_length = 18
+# teensy_top_xy = key_position(wall_locate3(-1, 0), 0, centerrow - 1)
+# teensy_bot_xy = key_position(wall_locate3(-1, 0), 0, centerrow + 1)
+# teensy_holder_length = teensy_top_xy[1] - teensy_bot_xy[1]
+# teensy_holder_offset = -teensy_holder_length / 2
+# teensy_holder_top_offset = (teensy_holder_top_length / 2) - teensy_holder_length
 
 
-def teensy_holder():
-    s1 = sl.cube([3, teensy_holder_length, 6 + teensy_width], center=True)
-    s1 = sl.translate([1.5, teensy_holder_offset, 0])(s1)
+# def teensy_holder():
+#     s1 = sl.cube([3, teensy_holder_length, 6 + teensy_width], center=True)
+#     s1 = sl.translate([1.5, teensy_holder_offset, 0])(s1)
 
-    s2 = sl.cube([teensy_pcb_thickness, teensy_holder_length, 3], center=True)
-    s2 = sl.translate(
-        [
-            (teensy_pcb_thickness / 2) + 3,
-            teensy_holder_offset,
-            -1.5 - (teensy_width / 2),
-        ]
-    )(s2)
+#     s2 = sl.cube([teensy_pcb_thickness, teensy_holder_length, 3], center=True)
+#     s2 = sl.translate(
+#         [
+#             (teensy_pcb_thickness / 2) + 3,
+#             teensy_holder_offset,
+#             -1.5 - (teensy_width / 2),
+#         ]
+#     )(s2)
 
-    s3 = sl.cube([teensy_pcb_thickness, teensy_holder_top_length, 3], center=True)
-    s3 = sl.translate(
-        [
-            (teensy_pcb_thickness / 2) + 3,
-            teensy_holder_top_offset,
-            1.5 + (teensy_width / 2),
-        ]
-    )(s3)
+#     s3 = sl.cube([teensy_pcb_thickness, teensy_holder_top_length, 3], center=True)
+#     s3 = sl.translate(
+#         [
+#             (teensy_pcb_thickness / 2) + 3,
+#             teensy_holder_top_offset,
+#             1.5 + (teensy_width / 2),
+#         ]
+#     )(s3)
 
-    s4 = sl.cube([4, teensy_holder_top_length, 4], center=True)
-    s4 = sl.translate(
-        [teensy_pcb_thickness + 5, teensy_holder_top_offset, 1 + (teensy_width / 2)]
-    )(s4)
+#     s4 = sl.cube([4, teensy_holder_top_length, 4], center=True)
+#     s4 = sl.translate(
+#         [teensy_pcb_thickness + 5, teensy_holder_top_offset, 1 + (teensy_width / 2)]
+#     )(s4)
 
-    shape = sl.union()(s1, s2, s3, s4)
+#     shape = sl.union()(s1, s2, s3, s4)
 
-    shape = sl.translate([-teensy_holder_width, 0, 0])(shape)
-    shape = sl.translate([-1.4, 0, 0])(shape)
-    shape = sl.translate(
-        [teensy_top_xy[0], teensy_top_xy[1] - 1, (6 + teensy_width) / 2]
-    )(shape)
+#     shape = sl.translate([-teensy_holder_width, 0, 0])(shape)
+#     shape = sl.translate([-1.4, 0, 0])(shape)
+#     shape = sl.translate(
+#         [teensy_top_xy[0], teensy_top_xy[1] - 1, (6 + teensy_width) / 2]
+#     )(shape)
 
-    return shape
+#     return shape
 
 
 def screw_insert_shape(bottom_radius, top_radius, height):
@@ -1556,7 +1565,7 @@ sl.scad_render_to_file(
 def baseplate():
     shape = sl.union()(
         case_walls(),
-        teensy_holder(),
+        # teensy_holder(),
         # rj9_holder(),
         screw_insert_outers(),
     )
